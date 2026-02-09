@@ -120,10 +120,13 @@ def fetch_trends():
         # 봇 탐지 회피를 위한 User-Agent 및 언어 설정
         chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
         chrome_options.add_argument("accept-language=ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7")
+
+        chrome_options.binary_location = "/data/data/com.termux/files/usr/bin/chromium"
         
         # WebDriver 설치 및 실행
         print("[Debug] ChromeDriver 설치 및 실행 시도...")
-        service = Service(ChromeDriverManager().install())
+
+        service = Service(executable_path="/data/data/com.termux/files/usr/bin/chromedriver")
         driver = webdriver.Chrome(service=service, options=chrome_options)
         
         target_url = "https://namu.wiki/w/%EB%82%98%EB%AC%B4%EC%9C%84%ED%82%A4:%EB%8C%80%EB%AC%B8"
