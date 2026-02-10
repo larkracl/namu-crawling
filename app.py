@@ -78,9 +78,6 @@ def api_data():
     rankings = fetch_rankings_data(period, target_date)
     return jsonify(rankings)
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
-
 @app.route('/api/realtime')
 def api_realtime():
     conn = get_db_connection()
@@ -94,3 +91,8 @@ def api_realtime():
     data = conn.execute(query).fetchall()
     conn.close()
     return jsonify([{"rank": r['rank'], "name": r['name']} for r in data])
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+
+
