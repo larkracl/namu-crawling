@@ -26,14 +26,14 @@ def fetch_rankings_data(period, target_date):
         end_date = target_date[:7] + "-31 23:59:59"
 
     query = """
-        SELECT k.name, SUM(CAST((strftime('%s', COALESCE(tl.last_seen_at, datetime('now', 'localtime'))) - strftime('%s', tl.created_at)) / 300 AS INTEGER) + 1) as hits
-        FROM trend_logs tl
-        JOIN keywords k ON tl.keyword_id = k.id
-        WHERE tl.created_at BETWEEN ? AND ?
-        GROUP BY k.id
-        ORDER BY hits DESC
-        LIMIT 20
-    """
+    SELECT k.name, SUM(CAST((strftime('%s', COALESCE(tl.last_seen_at, datetime('now', 'localtime'))) - strftime('%s', tl.created_at)) / 120 AS INTEGER) + 1) as hits, (SELECT link_url FROM keyword_explanations WHERE keyword_id = k.id ORDER BY id DESC LIMIT 1) as link
+    FROM trend_logs tl
+    JOIN keywords k ON tl.keyword_id = k.id
+    WHERE tl.created_at BETWEEN ? AND ?
+    GROUP BY k.id
+    ORDER BY hits DESC
+    LIMIT 20
+"""
 
     conn = get_db_connection()
     raw_data = conn.execute(query, (start_date, end_date)).fetchall()
@@ -50,7 +50,8 @@ def fetch_rankings_data(period, target_date):
         rankings.append({
             "name": row['name'],
             "hits": row['hits'],
-            "rank": current_rank
+            "rank": current_rank,
+            "link": row['link']
         })
     return rankings
 

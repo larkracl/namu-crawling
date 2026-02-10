@@ -43,6 +43,26 @@
      .rt-rank { width: 25px; font-weight: bold; color: #e74c3c; }
      /* 애니메이션 효과 */
      .rank-item.updating { opacity: 0.5; transform: scale(0.98); }
+     /* 키워드 링크 스타일 */
+     .keyword-link {
+       text-decoration: none; /* 밑줄 제거 */
+       color: #2c3e50; /* 기본 글자색 유지 */
+       font-weight: 600;
+       transition: color 0.2s;
+       display: inline-block;
+     }
+
+     /* 마우스를 올렸을 때만 색상 변화 */
+     .keyword-link:hover {
+       color: #e74c3c; /* 우리 포인트 컬러인 빨간색으로! */
+       text-decoration: underline; /* 마우스 올릴 때만 밑줄 */
+     }
+
+     .keyword-link small {
+       font-size: 10px;
+       color: #ccc;
+       margin-left: 3px;
+     }
     </style>
   </head>
   <body>
@@ -134,6 +154,11 @@
          const isTop = item.rank <= 3;
          const div = document.createElement('div');
          div.className = 'rank-item';
+
+	 const nameHtml = item.link 
+			? `<a href="${item.link}" target="_blank" class="keyword-link">${item.name} <small>🔗</small></a>`
+			: `<span class="keyword">${item.name}</span>`;
+
          div.innerHTML = `
            <div class="rank-num ${isTop ? 'top' : ''}">${item.rank}</div>
            <div class="keyword">${item.name}</div>
@@ -149,12 +174,16 @@
        const list = document.getElementById('realtime-list');
        if (!list) return;
        
-       list.innerHTML = data.map(item => `
+       list.innerHTML = data.map(item => {
+	 const namuUrl = `https://namu.wiki/w/${encodeURIComponent(item.name)}`;
+	 
+         return `
             <div class="realtime-item">
                 <span class="rt-rank">${item.rank}</span>
-                <span class="rt-name">${item.name}</span>
+                <a href="${namuUrl}" target="_blank" class="rt-link">${item.name}</a>
             </div>
-       `).join('');
+	 `;
+       }).join('');
      }
 
      // 5. 날짜 변경 이벤트
