@@ -202,10 +202,10 @@ if __name__ == "__main__":
 
             # 시간 계산 및 대기
             now = datetime.now()
-            minutes_to_add = 5 - (now.minute % 5)
+            minutes_to_add = 2 - (now.minute % 2)
             next_target = now + timedelta(minutes=minutes_to_add)
             next_target = next_target.replace(second=0, microsecond=0)
-            if next_target <= now: next_target += timedelta(minutes=5)
+            if next_target <= now: next_target += timedelta(minutes=2)
             
             wait_seconds = (next_target - now).total_seconds()
             print(f"다음 업데이트: {next_target.strftime('%H:%M:%S')} ({int(wait_seconds)}초 대기)")

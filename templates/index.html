@@ -1,113 +1,170 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>나무위키 실시간 트렌드</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #e74c3c; --up: #ff4d4d; --down: #3498db; --bg: #f4f7f6; }
-        body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--primary); }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        h1 { text-align: center; font-size: 22px; margin-bottom: 25px; letter-spacing: -1px; }
-        
-        .nav { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
-        .nav a { text-decoration: none; color: #888; padding: 8px 18px; border-radius: 25px; font-size: 13px; border: 1px solid #eee; transition: 0.3s; }
-        .nav a.active { background: var(--primary); color: white; border-color: var(--primary); }
-        
-        .date-picker { text-align: center; margin-bottom: 20px; }
-        input[type="date"] { border: 1px solid #eee; padding: 8px; border-radius: 10px; font-size: 14px; outline: none; color: var(--primary); }
+     :root { --primary: #2c3e50; --accent: #e74c3c; --up: #ff4d4d; --down: #3498db; --bg: #f4f7f6; }
+     body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--primary); }
+     .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+     h1 { text-align: center; font-size: 22px; margin-bottom: 25px; letter-spacing: -1px; }
+     
+     .nav { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+     .nav a { text-decoration: none; color: #888; padding: 8px 18px; border-radius: 25px; font-size: 13px; border: 1px solid #eee; transition: 0.3s; }
+     .nav a.active { background: var(--primary); color: white; border-color: var(--primary); }
+     
+     .date-picker { text-align: center; margin-bottom: 20px; }
+     input[type="date"] { border: 1px solid #eee; padding: 8px; border-radius: 10px; font-size: 14px; outline: none; color: var(--primary); }
 
-        #ranking-list { display: flex; flex-direction: column; gap: 10px; }
-        .rank-item { 
-            display: flex; align-items: center; padding: 15px; background: #fff; 
-            border-radius: 12px; border: 1px solid #f0f0f0; 
-            transition: transform 0.4s ease, opacity 0.4s ease;
-        }
-        .rank-num { width: 35px; font-weight: 800; font-size: 18px; color: #bbb; }
-        .rank-num.top { color: var(--accent); }
-        
-        .keyword { flex-grow: 1; font-weight: 600; font-size: 16px; margin-left: 10px; }
-        
-        .change { width: 60px; font-size: 12px; font-weight: bold; text-align: center; }
-        .up { color: var(--up); }
-        .down { color: var(--down); }
-        .stay { color: #ccc; }
+     #ranking-list { display: flex; flex-direction: column; gap: 10px; }
+     .rank-item { 
+       display: flex; align-items: center; padding: 15px; background: #fff; 
+       border-radius: 12px; border: 1px solid #f0f0f0; 
+       transition: transform 0.4s ease, opacity 0.4s ease;
+     }
+     .rank-num { width: 35px; font-weight: 800; font-size: 18px; color: #bbb; }
+     .rank-num.top { color: var(--accent); }
+     
+     .keyword { flex-grow: 1; font-weight: 600; font-size: 16px; margin-left: 10px; }
+     
+     .change { width: 60px; font-size: 12px; font-weight: bold; text-align: center; }
+     .up { color: var(--up); }
+     .down { color: var(--down); }
+     .stay { color: #ccc; }
 
-        .hits { font-size: 13px; color: #999; width: 60px; text-align: right; }
-        
-        /* 애니메이션 효과 */
-        .rank-item.updating { opacity: 0.5; transform: scale(0.98); }
+     .hits { font-size: 13px; color: #999; width: 60px; text-align: right; }
+
+     .main-layout { display: flex; gap: 20px; max-width: 1000px; margin: 0 auto; }
+     .stat-section { flex: 2; } /* 왼쪽: 누적 통계 */
+     .realtime-section { flex: 1; background: #fff; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); height: fit-content; }
+     .realtime-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #e74c3c; display: flex; align-items: center; gap: 5px; }
+     .realtime-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
+     .rt-rank { width: 25px; font-weight: bold; color: #e74c3c; }
+     /* 애니메이션 효과 */
+     .rank-item.updating { opacity: 0.5; transform: scale(0.98); }
     </style>
-</head>
-<body>
-    <div class="container">
-        <h1>📈 실시간 트렌드 통계</h1>
-        
-        <div class="nav">
+  </head>
+  <body>
+    <div class="main-layout">
+      <div class="stat-section">
+	<div class="container">
+	  <h1>📈 기간별 누적 통계(매 5분마다 1회 증가)</h1>
+	  
+	  <div class="nav">
             <a href="/?period=daily&date={{date}}" id="btn-daily">일간</a>
             <a href="/?period=weekly&date={{date}}" id="btn-weekly">주간</a>
             <a href="/?period=monthly&date={{date}}" id="btn-monthly">월간</a>
-        </div>
+	  </div>
 
-        <div class="date-picker">
+	  <div class="date-picker">
             <input type="date" id="dateInput" value="{{date}}">
-        </div>
+	  </div>
 
-        <div id="ranking-list">
+	  <div id="ranking-list">
             <!-- 데이터가 자바스크립트로 채워짐 -->
-        </div>
-    </div>
+	  </div>
+	</div>
+      </div>
 
+      <div class="realtime-section">
+	<div class="realtime-title">실시간 검색어 순위(2분마다 갱신)</div>
+	<div id="realtime-list" >
+	</div>
+      </div>
+    </div>
+    
     <script>
-     let prevRanks = {};
+     // 1. 초기 변수 설정
      const urlParams = new URLSearchParams(window.location.search);
      let currentPeriod = urlParams.get('period') || 'daily';
      let currentDate = urlParams.get('date') || new Date().toISOString().slice(0, 10);
+     
+     // 5분 전 데이터를 기억하기 위한 배열 (최대 5개 저장)
+     let rankHistory = []; 
 
-     // 버튼 활성화 표시
+     // 버튼 활성화 스타일 적용
      document.getElementById(`btn-${currentPeriod}`).classList.add('active');
      document.getElementById('dateInput').value = currentDate;
 
-     async function updateRankings() {
+     // 2. 메인 데이터 업데이트 함수
+     async function updateAllData() {
        try {
+         // [A] 누적 통계 데이터 가져오기
          const res = await fetch(`/api/data?period=${currentPeriod}&date=${currentDate}`);
-         const data = await res.json();
-         const list = document.getElementById('ranking-list');
+         const currentData = await res.json();
          
-         list.innerHTML = ''; // 화면 갱신
+         // 데이터 이력 관리 (5분 전과 비교하기 위해)
+         rankHistory.push(currentData);
+         if (rankHistory.length > 6) rankHistory.shift(); // 6개 유지 (0번이 5분 전 데이터가 됨)
          
-         data.forEach((item) => {
-           const prev = prevRanks[item.name];
-           let diffHtml = '<span class="stay">─</span>';
-           
-           if (prev !== undefined) {
-             const diff = prev - item.rank;
-             if (diff > 0) diffHtml = `<span class="up">▲ ${diff}</span>`;
-             else if (diff < 0) diffHtml = `<span class="down">▼ ${Math.abs(diff)}</span>`;
-           }
+         const pastData = rankHistory[0]; // 5분 전(또는 가장 오래된) 데이터
+         
+         // 왼쪽 통계 리스트 그리기
+         renderStatList(currentData, pastData);
 
-           const isTop = item.rank <= 3;
-           const div = document.createElement('div');
-           div.className = 'rank-item';
-           div.innerHTML = `
-             <div class="rank-num ${isTop ? 'top' : ''}">${item.rank}</div>
-             <div class="keyword">${item.name}</div>
-             <div class="change">${diffHtml}</div>
-             <div class="hits">${item.hits}회</div>
-           `;
-           list.appendChild(div);
-           prevRanks[item.name] = item.rank;
-         });
-       } catch (e) { console.error("데이터 로딩 실패", e); }
+         // [B] 실시간 순위 데이터 가져오기
+         const rtRes = await fetch('/api/realtime');
+         const rtData = await rtRes.json();
+         
+         // 오른쪽 실시간 리스트 그리기
+         renderRealtimeList(rtData);
+
+       } catch (e) {
+         console.error("데이터 업데이트 중 오류 발생:", e);
+       }
      }
 
+     // 3. 통계 리스트 렌더링 함수 (왼쪽)
+     function renderStatList(current, past) {
+       const list = document.getElementById('ranking-list');
+       list.innerHTML = ''; // 기존 내용 삭제
+
+       current.forEach((item) => {
+         // 5분 전 데이터(past)에서 같은 키워드의 순위를 찾아 비교
+         const pastItem = past.find(p => p.name === item.name);
+         let diffHtml = '<span class="stay">─</span>';
+         
+         if (pastItem) {
+           const diff = pastItem.rank - item.rank; // 이전 순위 - 현재 순위
+           if (diff > 0) diffHtml = `<span class="up">▲ ${diff}</span>`;
+           else if (diff < 0) diffHtml = `<span class="down">▼ ${Math.abs(diff)}</span>`;
+         }
+
+         const isTop = item.rank <= 3;
+         const div = document.createElement('div');
+         div.className = 'rank-item';
+         div.innerHTML = `
+           <div class="rank-num ${isTop ? 'top' : ''}">${item.rank}</div>
+           <div class="keyword">${item.name}</div>
+           <div class="change">${diffHtml}</div>
+           <div class="hits">${item.hits}회</div>
+         `;
+         list.appendChild(div);
+       });
+     }
+
+     // 4. 실시간 순위 렌더링 함수 (오른쪽)
+     function renderRealtimeList(data) {
+       const list = document.getElementById('realtime-list');
+       if (!list) return;
+       
+       list.innerHTML = data.map(item => `
+            <div class="realtime-item">
+                <span class="rt-rank">${item.rank}</span>
+                <span class="rt-name">${item.name}</span>
+            </div>
+       `).join('');
+     }
+
+     // 5. 날짜 변경 이벤트
      document.getElementById('dateInput').addEventListener('change', (e) => {
        window.location.href = `/?period=${currentPeriod}&date=${e.target.value}`;
      });
 
-     // 1분마다 자동 갱신
-     setInterval(updateRankings, 60000);
-     updateRankings();
+     // 6. 1분마다 자동 실행
+     setInterval(updateAllData, 60000); 
+     updateAllData(); // 페이지 로드 시 즉시 실행
     </script>
-</body>
+  </body>
 </html>

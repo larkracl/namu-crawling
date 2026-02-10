@@ -80,3 +80,17 @@ def api_data():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+
+@app.route('/api/realtime')
+def api_realtime():
+    conn = get_db_connection()
+    # current_rankings 테이블에서 현재 1~10위를 가져옴
+    query = """
+        SELECT cr.rank, k.name 
+        FROM current_rankings cr
+        JOIN keywords k ON cr.keyword_id = k.id
+        ORDER BY cr.rank ASC
+    """
+    data = conn.execute(query).fetchall()
+    conn.close()
+    return jsonify([{"rank": r['rank'], "name": r['name']} for r in data])
