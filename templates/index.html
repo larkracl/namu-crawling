@@ -63,6 +63,17 @@
        color: #ccc;
        margin-left: 3px;
      }
+     /* 오른쪽 실시간 순위 링크 스타일 */
+     .rt-link {
+       text-decoration: none;
+       color: #555; /* 너무 진하지 않은 회색 */
+       transition: 0.2s;
+     }
+
+     .rt-link:hover {
+       color: #0275d8; /* 나무위키 느낌 살짝 나게 파란색 계열로! */
+       text-decoration: underline;
+     }
     </style>
   </head>
   <body>
@@ -161,7 +172,7 @@
 
          div.innerHTML = `
            <div class="rank-num ${isTop ? 'top' : ''}">${item.rank}</div>
-           <div class="keyword">${item.name}</div>
+           <div class="keyword">${nameHtml}</div>
            <div class="change">${diffHtml}</div>
            <div class="hits">${item.hits}회</div>
          `;
