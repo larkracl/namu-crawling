@@ -26,7 +26,7 @@ def fetch_rankings_data(period, target_date):
         end_date = target_date[:7] + "-31 23:59:59"
 
     query = """
-    SELECT k.name, SUM(CAST((strftime('%s', COALESCE(tl.last_seen_at, datetime('now', 'localtime'))) - strftime('%s', tl.created_at)) / 120 AS INTEGER) + 1) as hits, (SELECT link_url FROM keyword_explanations WHERE keyword_id = k.id ORDER BY id DESC LIMIT 1) as link
+    SELECT k.name, SUM(CAST((strftime('%s', COALESCE(tl.last_seen_at, datetime('now', 'localtime'))) - strftime('%s', tl.created_at)) / 300 AS INTEGER) + 1) as hits, (SELECT link_url FROM keyword_explanations WHERE keyword_id = k.id ORDER BY id DESC LIMIT 1) as link
     FROM trend_logs tl
     JOIN keywords k ON tl.keyword_id = k.id
     WHERE tl.created_at BETWEEN ? AND ?
@@ -46,10 +46,19 @@ def fetch_rankings_data(period, target_date):
         # 이전 항목과 횟수가 다르면 현재 인덱스(+1)를 순위로 정함
         if i > 0 and row['hits'] < raw_data[i-1]['hits']:
             current_rank = i + 1
+
+        total_minutes = row['hits'] * 5
+        hours = total_minutes // 60
+        minutes = total_minutes % 60
+
+        if hours > 0:
+            time_display = f"{hours}시간 {minutes}분"
+        else:
+            time_display = f"{minutes}분"
         
         rankings.append({
             "name": row['name'],
-            "hits": row['hits'],
+            "hits": time_display,
             "rank": current_rank,
             "link": row['link']
         })

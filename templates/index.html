@@ -26,14 +26,18 @@
      .rank-num { width: 35px; font-weight: 800; font-size: 18px; color: #bbb; }
      .rank-num.top { color: var(--accent); }
      
-     .keyword { flex-grow: 1; font-weight: 600; font-size: 16px; margin-left: 10px; }
-     
      .change { width: 60px; font-size: 12px; font-weight: bold; text-align: center; }
      .up { color: var(--up); }
      .down { color: var(--down); }
      .stay { color: #ccc; }
 
-     .hits { font-size: 13px; color: #999; width: 60px; text-align: right; }
+     .hits { 
+       font-size: 13px; 
+       color: #999; 
+       width: 100px; /* 시간 표시를 위해 너비를 60에서 100으로 늘려줘 */
+       text-align: right; 
+       white-space: nowrap; /* 줄바꿈 방지 */
+     }
 
      .main-layout { display: flex; gap: 20px; max-width: 1000px; margin: 0 auto; }
      .stat-section { flex: 2; } /* 왼쪽: 누적 통계 */
@@ -43,14 +47,6 @@
      .rt-rank { width: 25px; font-weight: bold; color: #e74c3c; }
      /* 애니메이션 효과 */
      .rank-item.updating { opacity: 0.5; transform: scale(0.98); }
-     /* 키워드 링크 스타일 */
-     .keyword-link {
-       text-decoration: none; /* 밑줄 제거 */
-       color: #2c3e50; /* 기본 글자색 유지 */
-       font-weight: 600;
-       transition: color 0.2s;
-       display: inline-block;
-     }
 
      /* 마우스를 올렸을 때만 색상 변화 */
      .keyword-link:hover {
@@ -58,10 +54,28 @@
        text-decoration: underline; /* 마우스 올릴 때만 밑줄 */
      }
 
-     .keyword-link small {
+     .keyword-container {
+       display: flex; /* inline-flex 대신 flex 사용 */
+       align-items: center;
+       flex-grow: 1; /* 중간 공간 다 차지하게 */
+       margin-left: 10px;
+       overflow: hidden; /* 글자 넘침 방지 */
+     }
+     .keyword, .keyword-link {
+       font-size: 16px;
+       font-weight: 600;
+       color: var(--primary);
+       text-decoration: none;
+       display: inline-block;
+       line-height: 1.5;
+       margin: 0; padding: 0;
+     }
+     /* 링크 아이콘 스타일 */
+     .link-icon {
        font-size: 10px;
        color: #ccc;
-       margin-left: 3px;
+       margin-left: 4px;
+       vertical-align: middle;
      }
      /* 오른쪽 실시간 순위 링크 스타일 */
      .rt-link {
@@ -80,7 +94,7 @@
     <div class="main-layout">
       <div class="stat-section">
 	<div class="container">
-	  <h1>📈 기간별 누적 통계(매 5분마다 1회 증가)</h1>
+	  <h1>📈 기간별 누적 통계</h1>
 	  
 	  <div class="nav">
             <a href="/?period=daily&date={{date}}" id="btn-daily">일간</a>
@@ -167,14 +181,14 @@
          div.className = 'rank-item';
 
 	 const nameHtml = item.link 
-			? `<a href="${item.link}" target="_blank" class="keyword-link">${item.name} <small>🔗</small></a>`
+			? `<a href="${item.link}" target="_blank" class="keyword-link">${item.name} <span class="link-icon">🔗</span></a>`
 			: `<span class="keyword">${item.name}</span>`;
 
          div.innerHTML = `
            <div class="rank-num ${isTop ? 'top' : ''}">${item.rank}</div>
            <div class="keyword">${nameHtml}</div>
            <div class="change">${diffHtml}</div>
-           <div class="hits">${item.hits}회</div>
+           <div class="hits">${item.hits}</div>
          `;
          list.appendChild(div);
        });

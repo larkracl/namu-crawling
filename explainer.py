@@ -17,6 +17,7 @@ def init_explainer_db():
             title TEXT,
             created_at DATETIME,
             FOREIGN KEY (keyword_id) REFERENCES keywords(id)
+            UNIQUE(keyword_id, link_url)
         )
     """)
     conn.commit()
@@ -44,7 +45,7 @@ def fetch_explanations():
             SELECT DISTINCT k.id, k.name 
             FROM keywords k
             JOIN trend_logs tl ON k.id = tl.keyword_id
-            WHERE tl.created_at >= datetime('now', '-2 days', 'localtime')
+            WHERE tl.last_seen_at IS NULL
                OR tl.last_seen_at >= datetime('now', '-2 days', 'localtime')
         """)
         active_keywords = cursor.fetchall()
@@ -64,7 +65,7 @@ def fetch_explanations():
                 
                 # 활성화된 키워드들하고만 대조!
                 for k_id, k_name in active_keywords:
-                    if k_name in title:
+                    if k_name.lower() in title.lower():
                         cursor.execute("""
                             INSERT OR IGNORE INTO keyword_explanations (keyword_id, link_url, title, created_at)
                             VALUES (?, ?, ?, ?)
