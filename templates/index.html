@@ -3,67 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나무위키 트렌드 통계</title>
+    <title>나무위키 실시간 트렌드</title>
     <style>
-        :root { --primary: #373a3c; --accent: #0275d8; --bg: #f8f9fa; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--primary); margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: var(--accent); font-size: 24px; margin-bottom: 30px; }
-        .nav { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
-        .nav a { text-decoration: none; color: #666; padding: 8px 16px; border-radius: 20px; border: 1px solid #ddd; font-size: 14px; transition: 0.3s; }
-        .nav a.active { background: var(--accent); color: white; border-color: var(--accent); }
-        .date-picker { text-align: center; margin-bottom: 30px; }
-        input[type="date"] { padding: 8px; border-radius: 5px; border: 1px solid #ddd; outline: none; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #fdfdfd; font-weight: 600; color: #888; font-size: 13px; text-transform: uppercase; }
-        .rank { font-weight: bold; color: var(--accent); width: 50px; }
-        .keyword { font-weight: 500; font-size: 16px; }
-        .hits { text-align: right; color: #999; font-size: 14px; }
-        .no-data { text-align: center; padding: 50px; color: #ccc; }
+        :root { --primary: #2c3e50; --accent: #e74c3c; --up: #ff4d4d; --down: #3498db; --bg: #f4f7f6; }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--primary); }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        h1 { text-align: center; font-size: 22px; margin-bottom: 25px; letter-spacing: -1px; }
+        
+        .nav { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+        .nav a { text-decoration: none; color: #888; padding: 8px 18px; border-radius: 25px; font-size: 13px; border: 1px solid #eee; transition: 0.3s; }
+        .nav a.active { background: var(--primary); color: white; border-color: var(--primary); }
+        
+        .date-picker { text-align: center; margin-bottom: 20px; }
+        input[type="date"] { border: 1px solid #eee; padding: 8px; border-radius: 10px; font-size: 14px; outline: none; color: var(--primary); }
+
+        #ranking-list { display: flex; flex-direction: column; gap: 10px; }
+        .rank-item { 
+            display: flex; align-items: center; padding: 15px; background: #fff; 
+            border-radius: 12px; border: 1px solid #f0f0f0; 
+            transition: transform 0.4s ease, opacity 0.4s ease;
+        }
+        .rank-num { width: 35px; font-weight: 800; font-size: 18px; color: #bbb; }
+        .rank-num.top { color: var(--accent); }
+        
+        .keyword { flex-grow: 1; font-weight: 600; font-size: 16px; margin-left: 10px; }
+        
+        .change { width: 60px; font-size: 12px; font-weight: bold; text-align: center; }
+        .up { color: var(--up); }
+        .down { color: var(--down); }
+        .stay { color: #ccc; }
+
+        .hits { font-size: 13px; color: #999; width: 60px; text-align: right; }
+        
+        /* 애니메이션 효과 */
+        .rank-item.updating { opacity: 0.5; transform: scale(0.98); }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📊 실시간 검색어 통계</h1>
+        <h1>📈 실시간 트렌드 통계</h1>
         
         <div class="nav">
-            <a href="/?period=daily&date={{date}}" class="{{'active' if period=='daily'}}">일간</a>
-            <a href="/?period=weekly&date={{date}}" class="{{'active' if period=='weekly'}}">주간</a>
-            <a href="/?period=monthly&date={{date}}" class="{{'active' if period=='monthly'}}">월간</a>
+            <a href="/?period=daily&date={{date}}" id="btn-daily">일간</a>
+            <a href="/?period=weekly&date={{date}}" id="btn-weekly">주간</a>
+            <a href="/?period=monthly&date={{date}}" id="btn-monthly">월간</a>
         </div>
 
         <div class="date-picker">
-            <form action="/" method="get">
-                <input type="hidden" name="period" value="{{period}}">
-                <input type="date" name="date" value="{{date}}" onchange="this.form.submit()">
-            </form>
+            <input type="date" id="dateInput" value="{{date}}">
         </div>
 
-        <h3>{{ title }}</h3>
-        
-        {% if rankings %}
-        <table>
-            <thead>
-                <tr>
-                    <th>순위</th>
-                    <th>키워드</th>
-                    <th style="text-align: right;">노출 횟수</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in rankings %}
-                <tr>
-                    <td class="rank">{{ loop.index }}</td>
-                    <td class="keyword">{{ row['name'] }}</td>
-                    <td class="hits">{{ row['hits'] }}회</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <div class="no-data">해당 기간의 데이터가 아직 없어요.</div>
-        {% endif %}
+        <div id="ranking-list">
+            <!-- 데이터가 자바스크립트로 채워짐 -->
+        </div>
     </div>
+
+    <script>
+     let prevRanks = {};
+     const urlParams = new URLSearchParams(window.location.search);
+     let currentPeriod = urlParams.get('period') || 'daily';
+     let currentDate = urlParams.get('date') || new Date().toISOString().slice(0, 10);
+
+     // 버튼 활성화 표시
+     document.getElementById(`btn-${currentPeriod}`).classList.add('active');
+     document.getElementById('dateInput').value = currentDate;
+
+     async function updateRankings() {
+       try {
+         const res = await fetch(`/api/data?period=${currentPeriod}&date=${currentDate}`);
+         const data = await res.json();
+         const list = document.getElementById('ranking-list');
+         
+         list.innerHTML = ''; // 화면 갱신
+         
+         data.forEach((item) => {
+           const prev = prevRanks[item.name];
+           let diffHtml = '<span class="stay">─</span>';
+           
+           if (prev !== undefined) {
+             const diff = prev - item.rank;
+             if (diff > 0) diffHtml = `<span class="up">▲ ${diff}</span>`;
+             else if (diff < 0) diffHtml = `<span class="down">▼ ${Math.abs(diff)}</span>`;
+           }
+
+           const isTop = item.rank <= 3;
+           const div = document.createElement('div');
+           div.className = 'rank-item';
+           div.innerHTML = `
+             <div class="rank-num ${isTop ? 'top' : ''}">${item.rank}</div>
+             <div class="keyword">${item.name}</div>
+             <div class="change">${diffHtml}</div>
+             <div class="hits">${item.hits}회</div>
+           `;
+           list.appendChild(div);
+           prevRanks[item.name] = item.rank;
+         });
+       } catch (e) { console.error("데이터 로딩 실패", e); }
+     }
+
+     document.getElementById('dateInput').addEventListener('change', (e) => {
+       window.location.href = `/?period=${currentPeriod}&date=${e.target.value}`;
+     });
+
+     // 1분마다 자동 갱신
+     setInterval(updateRankings, 60000);
+     updateRankings();
+    </script>
 </body>
 </html>
