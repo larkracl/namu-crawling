@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나무위키 트렌드 통계</title>
+    <style>
+        :root { --primary: #373a3c; --accent: #0275d8; --bg: #f8f9fa; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--primary); margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: var(--accent); font-size: 24px; margin-bottom: 30px; }
+        .nav { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
+        .nav a { text-decoration: none; color: #666; padding: 8px 16px; border-radius: 20px; border: 1px solid #ddd; font-size: 14px; transition: 0.3s; }
+        .nav a.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .date-picker { text-align: center; margin-bottom: 30px; }
+        input[type="date"] { padding: 8px; border-radius: 5px; border: 1px solid #ddd; outline: none; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #fdfdfd; font-weight: 600; color: #888; font-size: 13px; text-transform: uppercase; }
+        .rank { font-weight: bold; color: var(--accent); width: 50px; }
+        .keyword { font-weight: 500; font-size: 16px; }
+        .hits { text-align: right; color: #999; font-size: 14px; }
+        .no-data { text-align: center; padding: 50px; color: #ccc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 실시간 검색어 통계</h1>
+        
+        <div class="nav">
+            <a href="/?period=daily&date={{date}}" class="{{'active' if period=='daily'}}">일간</a>
+            <a href="/?period=weekly&date={{date}}" class="{{'active' if period=='weekly'}}">주간</a>
+            <a href="/?period=monthly&date={{date}}" class="{{'active' if period=='monthly'}}">월간</a>
+        </div>
+
+        <div class="date-picker">
+            <form action="/" method="get">
+                <input type="hidden" name="period" value="{{period}}">
+                <input type="date" name="date" value="{{date}}" onchange="this.form.submit()">
+            </form>
+        </div>
+
+        <h3>{{ title }}</h3>
+        
+        {% if rankings %}
+        <table>
+            <thead>
+                <tr>
+                    <th>순위</th>
+                    <th>키워드</th>
+                    <th style="text-align: right;">노출 횟수</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rankings %}
+                <tr>
+                    <td class="rank">{{ loop.index }}</td>
+                    <td class="keyword">{{ row['name'] }}</td>
+                    <td class="hits">{{ row['hits'] }}회</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-data">해당 기간의 데이터가 아직 없어요.</div>
+        {% endif %}
+    </div>
+</body>
+</html>
