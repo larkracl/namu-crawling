@@ -13,10 +13,10 @@ def init_explainer_db():
         CREATE TABLE IF NOT EXISTS keyword_explanations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             keyword_id INTEGER,
-            link_url TEXT UNIQUE, 
+            link_url TEXT,
             title TEXT,
             created_at DATETIME,
-            FOREIGN KEY (keyword_id) REFERENCES keywords(id)
+            FOREIGN KEY (keyword_id) REFERENCES keywords(id),
             UNIQUE(keyword_id, link_url)
         )
     """)
@@ -40,14 +40,22 @@ def fetch_explanations():
         cursor = conn.cursor()
 
         # [핵심 수정] 최근 2일 이내에 로그(trend_logs)에 기록된 키워드만 가져오기
-        print(f"[{datetime.now()}] 활성 키워드 목록(최근 2일) 불러오는 중...")
+        print(f"[{datetime.now()}] 활성 키워드 목록 불러오는 중 (UNION 최적화)...")
+        
         cursor.execute("""
-            SELECT DISTINCT k.id, k.name 
+            SELECT k.id, k.name 
             FROM keywords k
             JOIN trend_logs tl ON k.id = tl.keyword_id
             WHERE tl.last_seen_at IS NULL
-               OR tl.last_seen_at >= datetime('now', '-2 days', 'localtime')
+            
+            UNION
+            
+            SELECT k.id, k.name 
+            FROM keywords k
+            JOIN trend_logs tl ON k.id = tl.keyword_id
+            WHERE tl.last_seen_at >= datetime('now', '-2 days', 'localtime')
         """)
+        
         active_keywords = cursor.fetchall()
         print(f"[Debug] 대조 대상 키워드 개수: {len(active_keywords)}개")
 
