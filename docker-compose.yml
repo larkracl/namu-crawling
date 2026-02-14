@@ -1,0 +1,46 @@
+services:
+  web:
+    build: .
+    command: python app.py
+    ports:
+      - "5000:5000"
+    volumes:
+      - data:/app/data
+    environment:
+      - DB_PATH=/app/data/namu_trends.db
+    restart: unless-stopped
+    depends_on:
+      - crawler
+      - explainer
+
+  crawler:
+    build: .
+    command: python namu.py
+    volumes:
+      - data:/app/data
+    environment:
+      - DB_PATH=/app/data/namu_trends.db
+      - CHROME_BIN=/usr/bin/chromium
+      - CHROMEDRIVER=/usr/bin/chromedriver
+    restart: unless-stopped
+
+  explainer:
+    build: .
+    command: python explainer.py
+    volumes:
+      - data:/app/data
+    environment:
+      - DB_PATH=/app/data/namu_trends.db
+      - CHROME_BIN=/usr/bin/chromium
+      - CHROMEDRIVER=/usr/bin/chromedriver
+    restart: unless-stopped
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    restart: unless-stopped
+
+volumes:
+  data:
