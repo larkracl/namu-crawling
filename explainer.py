@@ -1,3 +1,4 @@
+import os
 import time
 import sqlite3
 from datetime import datetime, timedelta
@@ -25,18 +26,23 @@ def init_explainer_db():
 
 def fetch_explanations():
     options = Options()
+
+    DB_PATH = os.getenv("DB_PATH", "namu_trends.db")
+    chrome_bin = os.getenv("CHROME_BIN", "/usr/bin/chromium")
+    chromedriver = os.getenv("CHROMEDRIVER", "/usr/bin/chromedriver")
+
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.binary_location = "/data/data/com.termux/files/usr/bin/chromium"
-    service = Service("/data/data/com.termux/files/usr/bin/chromedriver")
+    options.binary_location = chrome_bin
+    service = Service(chromedriver)
     
     driver = None
     conn = None
     
     try:
         driver = webdriver.Chrome(service=service, options=options)
-        conn = sqlite3.connect("namu_trends.db")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
 
         # [핵심 수정] 최근 2일 이내에 로그(trend_logs)에 기록된 키워드만 가져오기

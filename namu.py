@@ -1,6 +1,7 @@
 import time
 import sqlite3
 import traceback
+import os
 import sys
 from datetime import datetime, timedelta
 
@@ -108,6 +109,9 @@ def fetch_trends():
     try:
         print("[Debug] 크롬 옵션 설정 중...")
         chrome_options = Options()
+
+        chrome_bin = os.getenv("CHROME_BIN", "/usr/bin/chromium")
+        chromedriver = os.getenv("CHROMEDRIVER", "/usr/bin/chromedriver")
         
         # [Linux/Ubuntu Headless 필수 설정]
         chrome_options.add_argument("--headless=new") # 최신 헤드리스 모드
@@ -121,12 +125,12 @@ def fetch_trends():
         chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
         chrome_options.add_argument("accept-language=ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7")
 
-        chrome_options.binary_location = "/data/data/com.termux/files/usr/bin/chromium"
+        chrome_options.binary_location = chrome_bin
         
         # WebDriver 설치 및 실행
         print("[Debug] ChromeDriver 설치 및 실행 시도...")
 
-        service = Service(executable_path="/data/data/com.termux/files/usr/bin/chromedriver")
+        service = Service(chromedriver)
         driver = webdriver.Chrome(service=service, options=chrome_options)
         
         target_url = "https://namu.wiki/w/%EB%82%98%EB%AC%B4%EC%9C%84%ED%82%A4:%EB%8C%80%EB%AC%B8"
